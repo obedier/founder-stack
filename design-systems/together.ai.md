@@ -1,4 +1,4 @@
-# Design System: Together AI
+# Design System Inspired by Together AI
 
 ## 1. Visual Theme & Atmosphere
 

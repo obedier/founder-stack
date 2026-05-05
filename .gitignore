@@ -6,3 +6,4 @@ skills/gstack/.git/
 *.env
 *.key
 *.pem
+.context/

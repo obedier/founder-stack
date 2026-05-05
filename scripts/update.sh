@@ -48,6 +48,18 @@ ECC_CHANGES=0
 GSTACK_CHANGES=0
 DESIGN_MD_CHANGES=0
 
+# Ensure the old tracked SHA is reachable in a (possibly shallow) clone.
+# If not present, unshallow the clone so `git log OLD..NEW` works.
+ensure_history() {
+  local dir="$1"
+  local old_sha="$2"
+  if [ -z "$old_sha" ]; then return 0; fi
+  if ! (cd "$dir" && git cat-file -e "${old_sha}^{commit}" 2>/dev/null); then
+    (cd "$dir" && git fetch --unshallow --quiet 2>/dev/null) || \
+      (cd "$dir" && git fetch --depth=10000 --quiet 2>/dev/null) || true
+  fi
+}
+
 # --- ECC ---
 if [ "$GSTACK_ONLY" = false ]; then
   echo "Fetching ECC upstream..."
@@ -57,14 +69,15 @@ if [ "$GSTACK_ONLY" = false ]; then
   }
 
   ECC_NEW_SHA=$(cd "$TMPDIR/ecc" && git rev-parse HEAD)
+  ensure_history "$TMPDIR/ecc" "$ECC_SHA"
   if [ "$ECC_SHA" = "$ECC_NEW_SHA" ]; then
     echo "  ECC: already up to date ($ECC_SHA)"
   else
     echo ""
     echo "=== ECC changes (${ECC_SHA:0:8}..${ECC_NEW_SHA:0:8}) ==="
     cd "$TMPDIR/ecc"
-    git log --oneline "$ECC_SHA".."$ECC_NEW_SHA" 2>/dev/null | head -30
-    ECC_CHANGES=$(git log --oneline "$ECC_SHA".."$ECC_NEW_SHA" 2>/dev/null | wc -l | tr -d ' ')
+    git log -n 30 --oneline "$ECC_SHA".."$ECC_NEW_SHA" 2>/dev/null || true
+    ECC_CHANGES=$(git log --oneline "$ECC_SHA".."$ECC_NEW_SHA" 2>/dev/null | wc -l | tr -d ' ' || echo 0)
     echo "  ($ECC_CHANGES new commits)"
     cd "$REPO_ROOT"
   fi
@@ -80,14 +93,15 @@ if [ "$ECC_ONLY" = false ]; then
   }
 
   GSTACK_NEW_SHA=$(cd "$TMPDIR/gstack" && git rev-parse HEAD)
+  ensure_history "$TMPDIR/gstack" "$GSTACK_SHA"
   if [ "$GSTACK_SHA" = "$GSTACK_NEW_SHA" ]; then
     echo "  gstack: already up to date ($GSTACK_SHA)"
   else
     echo ""
     echo "=== gstack changes (${GSTACK_SHA:0:8}..${GSTACK_NEW_SHA:0:8}) ==="
     cd "$TMPDIR/gstack"
-    git log --oneline "$GSTACK_SHA".."$GSTACK_NEW_SHA" 2>/dev/null | head -30
-    GSTACK_CHANGES=$(git log --oneline "$GSTACK_SHA".."$GSTACK_NEW_SHA" 2>/dev/null | wc -l | tr -d ' ')
+    git log -n 30 --oneline "$GSTACK_SHA".."$GSTACK_NEW_SHA" 2>/dev/null || true
+    GSTACK_CHANGES=$(git log --oneline "$GSTACK_SHA".."$GSTACK_NEW_SHA" 2>/dev/null | wc -l | tr -d ' ' || echo 0)
     echo "  ($GSTACK_CHANGES new commits)"
     cd "$REPO_ROOT"
   fi
@@ -103,14 +117,15 @@ if [ "$ECC_ONLY" = false ] && [ "$GSTACK_ONLY" = false ]; then
 
   if [ -d "$TMPDIR/design-md" ]; then
     DESIGN_MD_NEW_SHA=$(cd "$TMPDIR/design-md" && git rev-parse HEAD)
+    ensure_history "$TMPDIR/design-md" "$DESIGN_MD_SHA"
     if [ "$DESIGN_MD_SHA" = "$DESIGN_MD_NEW_SHA" ]; then
       echo "  awesome-design-md: already up to date ($DESIGN_MD_SHA)"
     else
       echo ""
       echo "=== awesome-design-md changes (${DESIGN_MD_SHA:0:8}..${DESIGN_MD_NEW_SHA:0:8}) ==="
       cd "$TMPDIR/design-md"
-      git log --oneline "$DESIGN_MD_SHA".."$DESIGN_MD_NEW_SHA" 2>/dev/null | head -30
-      DESIGN_MD_CHANGES=$(git log --oneline "$DESIGN_MD_SHA".."$DESIGN_MD_NEW_SHA" 2>/dev/null | wc -l | tr -d ' ')
+      git log -n 30 --oneline "$DESIGN_MD_SHA".."$DESIGN_MD_NEW_SHA" 2>/dev/null || true
+      DESIGN_MD_CHANGES=$(git log --oneline "$DESIGN_MD_SHA".."$DESIGN_MD_NEW_SHA" 2>/dev/null | wc -l | tr -d ' ' || echo 0)
       echo "  ($DESIGN_MD_CHANGES new commits)"
       cd "$REPO_ROOT"
     fi
@@ -123,14 +138,15 @@ elif [ "$DESIGN_MD_ONLY" = true ]; then
   }
 
   DESIGN_MD_NEW_SHA=$(cd "$TMPDIR/design-md" && git rev-parse HEAD)
+  ensure_history "$TMPDIR/design-md" "$DESIGN_MD_SHA"
   if [ "$DESIGN_MD_SHA" = "$DESIGN_MD_NEW_SHA" ]; then
     echo "  awesome-design-md: already up to date ($DESIGN_MD_SHA)"
   else
     echo ""
     echo "=== awesome-design-md changes (${DESIGN_MD_SHA:0:8}..${DESIGN_MD_NEW_SHA:0:8}) ==="
     cd "$TMPDIR/design-md"
-    git log --oneline "$DESIGN_MD_SHA".."$DESIGN_MD_NEW_SHA" 2>/dev/null | head -30
-    DESIGN_MD_CHANGES=$(git log --oneline "$DESIGN_MD_SHA".."$DESIGN_MD_NEW_SHA" 2>/dev/null | wc -l | tr -d ' ')
+    git log -n 30 --oneline "$DESIGN_MD_SHA".."$DESIGN_MD_NEW_SHA" 2>/dev/null || true
+    DESIGN_MD_CHANGES=$(git log --oneline "$DESIGN_MD_SHA".."$DESIGN_MD_NEW_SHA" 2>/dev/null | wc -l | tr -d ' ' || echo 0)
     echo "  ($DESIGN_MD_CHANGES new commits)"
     cd "$REPO_ROOT"
   fi

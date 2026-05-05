@@ -1,4 +1,4 @@
-# Design System: Supabase
+# Design System Inspired by Supabase
 
 ## 1. Visual Theme & Atmosphere
 

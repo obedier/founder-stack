@@ -1,4 +1,4 @@
-# Design System: Kraken
+# Design System Inspired by Kraken
 
 ## 1. Visual Theme & Atmosphere
 

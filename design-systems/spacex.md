@@ -1,4 +1,4 @@
-# Design System: SpaceX
+# Design System Inspired by SpaceX
 
 ## 1. Visual Theme & Atmosphere
 

@@ -1,4 +1,4 @@
-# Design System: Uber
+# Design System Inspired by Uber
 
 ## 1. Visual Theme & Atmosphere
 
