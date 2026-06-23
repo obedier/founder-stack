@@ -118,17 +118,51 @@ let hooksRaw = {};
 try { hooksRaw = JSON.parse(fs.readFileSync(hooksPath, 'utf8')); } catch {}
 const hooksConfig = hooksRaw.hooks || hooksRaw;
 
-// Merge hooks (deduplicate by JSON serialization)
+// Replace hooks with canonical version from hooks.json (deduplication by replacement)
+// Hooks in hooks.json use 'id' fields — we remove any existing hook with the same id,
+// then remove old-format hooks (no id, command uses run-with-flags-shell.sh or the
+// old direct script paths), and finally add all canonical hooks fresh.
 if (!settings.hooks) settings.hooks = {};
+
+// Build set of canonical ids to replace
+const canonicalIds = new Set();
+for (const entries of Object.values(hooksConfig)) {
+  if (!Array.isArray(entries)) continue;
+  for (const entry of entries) {
+    if (entry.id) canonicalIds.add(entry.id);
+  }
+}
+
+// Remove stale hooks: same id (old version) or old-format hooks that canonical replaces
+for (const event of Object.keys(settings.hooks)) {
+  settings.hooks[event] = (settings.hooks[event] || []).filter(entry => {
+    // Remove if it has a canonical id (will be re-added fresh)
+    if (entry.id && canonicalIds.has(entry.id)) return false;
+    // Remove old-format hooks: direct run-with-flags-shell.sh or direct script path calls
+    const cmd = (entry.hooks || []).map(h => h.command || '').join(' ');
+    if (cmd.includes('run-with-flags-shell.sh')) return false;
+    if (cmd.includes('auto-tmux-dev.js')) return false;
+    if (cmd.includes('block-no-verify')) return false;
+    // Remove hooks added by old installer (direct path to ~/.claude/scripts/hooks/*.js
+    // without the plugin-hook-bootstrap loader, i.e. no CLAUDE_PLUGIN_ROOT resolution)
+    if (/node "\/[^"]+\/\.claude\/scripts\/hooks\/run-with-flags\.js"/.test(cmd)) return false;
+    return true;
+  });
+}
+
+// Add all canonical hooks fresh
 for (const [event, entries] of Object.entries(hooksConfig)) {
   if (!Array.isArray(entries)) continue;
   if (!settings.hooks[event]) settings.hooks[event] = [];
-  const existing = new Set(settings.hooks[event].map(e => JSON.stringify(e)));
+  const existingIds = new Set(settings.hooks[event].map(e => e.id).filter(Boolean));
+  const existingKeys = new Set(settings.hooks[event].map(e => JSON.stringify(e)));
   for (const entry of entries) {
+    if (entry.id && existingIds.has(entry.id)) continue;
     const key = JSON.stringify(entry);
-    if (!existing.has(key)) {
+    if (!existingKeys.has(key)) {
       settings.hooks[event].push(entry);
-      existing.add(key);
+      existingIds.add(entry.id);
+      existingKeys.add(key);
     }
   }
 }
