@@ -261,6 +261,54 @@ fi
 # Update timestamp
 sed -i '' "s/^updated=.*/updated=$(date +%Y-%m-%d)/" "$UPSTREAM_FILE"
 
+# --- Security scan of vendored skills (SkillSpector, best-effort gate) ---
+# /update pulls hundreds of third-party skill files; scan them before they run.
+# Fast --no-llm pass; never blocks the update, only surfaces HIGH/CRITICAL.
+if command -v skillspector >/dev/null 2>&1; then
+  echo ""
+  echo "Scanning vendored skills with SkillSpector (--no-llm)..."
+  SCAN_OUT="${TMPDIR:-/tmp}/skillspector-report.json"
+  if skillspector scan "$REPO_ROOT/skills" --recursive --no-llm \
+       --format json --output "$SCAN_OUT" >/dev/null 2>&1; then
+    FLAGGED=$(python3 - "$SCAN_OUT" <<'PY'
+import json, sys
+def walk(o, out):
+    if isinstance(o, dict):
+        sev = str(o.get("severity", "")).upper()
+        rec = str(o.get("recommendation", "")).upper()
+        name = o.get("skill") or o.get("name") or o.get("source")
+        if name and (sev in ("HIGH", "CRITICAL") or rec in ("BLOCK", "AVOID")):
+            out.append(f"{name}: {sev or rec}")
+        for v in o.values():
+            walk(v, out)
+    elif isinstance(o, list):
+        for v in o:
+            walk(v, out)
+try:
+    data = json.load(open(sys.argv[1]))
+except Exception:
+    sys.exit(0)
+out = []
+walk(data, out)
+print("\n".join(sorted(set(out))))
+PY
+)
+    if [ -n "$FLAGGED" ]; then
+      echo "  ⚠ Flagged (review before use — may be false positives):"
+      echo "$FLAGGED" | sed 's/^/    /'
+      echo "  Full report: $SCAN_OUT"
+    else
+      echo "  No HIGH/CRITICAL findings."
+    fi
+  else
+    echo "  (skillspector scan failed — skipping gate, update still applied)"
+  fi
+else
+  echo ""
+  echo "SkillSpector not installed — skipping skill security scan."
+  echo "  Install: uv tool install git+https://github.com/NVIDIA/skillspector.git"
+fi
+
 echo ""
 echo "Updates applied to founder-stack repo."
 echo "Run ./install.sh to push changes to ~/.claude/"

@@ -66,6 +66,20 @@ The update script **never overwrites**:
 - `templates/` — sprint kit templates
 - `scripts/orchestrate-progress.js` — progress tracker
 
+## Security Scan (SkillSpector)
+
+After applying upstream changes, the updater runs a **best-effort SkillSpector
+scan** over `skills/` (fast `--no-llm` pass) and surfaces any HIGH/CRITICAL
+findings before you `./install.sh` hundreds of third-party skill files to
+`~/.claude/`. It never blocks the update — it only warns.
+
+- Requires SkillSpector: `uv tool install git+https://github.com/NVIDIA/skillspector.git`
+- If not installed, the scan is skipped with an install hint.
+- Findings can be false positives (e.g. interactive scripts that echo values) —
+  review the full JSON report before acting.
+- Scan a single skill manually before adding it from anywhere:
+  `skillspector scan <path-or-github-url>`
+
 ## Arguments
 
 $ARGUMENTS:
