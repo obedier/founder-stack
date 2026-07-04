@@ -11,6 +11,7 @@ DRY_RUN=false
 ECC_ONLY=false
 GSTACK_ONLY=false
 DESIGN_MD_ONLY=false
+MARKETING_ONLY=false
 
 for arg in "$@"; do
   case "$arg" in
@@ -18,12 +19,14 @@ for arg in "$@"; do
     --ecc-only) ECC_ONLY=true ;;
     --gstack-only) GSTACK_ONLY=true ;;
     --design-md-only) DESIGN_MD_ONLY=true ;;
+    --marketing-only) MARKETING_ONLY=true ;;
     --help|-h)
-      echo "Usage: ./scripts/update.sh [--dry-run] [--ecc-only] [--gstack-only] [--design-md-only]"
+      echo "Usage: ./scripts/update.sh [--dry-run] [--ecc-only] [--gstack-only] [--design-md-only] [--marketing-only]"
       echo "  --dry-run          Show changes without applying"
       echo "  --ecc-only         Only update ECC components"
       echo "  --gstack-only      Only update gstack components"
       echo "  --design-md-only   Only update design systems from awesome-design-md"
+      echo "  --marketing-only   Only update marketing skills from marketingskills"
       exit 0
       ;;
   esac
@@ -33,12 +36,14 @@ done
 ECC_SHA=$(grep "^ecc=" "$UPSTREAM_FILE" | cut -d= -f2)
 GSTACK_SHA=$(grep "^gstack=" "$UPSTREAM_FILE" | cut -d= -f2)
 DESIGN_MD_SHA=$(grep "^design_md=" "$UPSTREAM_FILE" | cut -d= -f2 || echo "")
+MARKETING_SHA=$(grep "^marketingskills=" "$UPSTREAM_FILE" | cut -d= -f2 || echo "")
 
 echo "founder-stack updater"
 echo "====================="
 echo "Current ECC:       ${ECC_SHA:0:12}"
 echo "Current gstack:    ${GSTACK_SHA:0:12}"
 echo "Current design-md: ${DESIGN_MD_SHA:0:12}"
+echo "Current marketing: ${MARKETING_SHA:0:12}"
 echo ""
 
 TMPDIR=$(mktemp -d)
@@ -47,6 +52,7 @@ trap "rm -rf $TMPDIR" EXIT
 ECC_CHANGES=0
 GSTACK_CHANGES=0
 DESIGN_MD_CHANGES=0
+MARKETING_CHANGES=0
 
 # Ensure the old tracked SHA is reachable in a (possibly shallow) clone.
 # If not present, unshallow the clone so `git log OLD..NEW` works.
@@ -61,7 +67,7 @@ ensure_history() {
 }
 
 # --- ECC ---
-if [ "$GSTACK_ONLY" = false ]; then
+if [ "$GSTACK_ONLY" = false ] && [ "$MARKETING_ONLY" = false ]; then
   echo "Fetching ECC upstream..."
   git clone --quiet --depth=100 https://github.com/affaan-m/everything-claude-code "$TMPDIR/ecc" 2>/dev/null || {
     echo "ERROR: Failed to clone ECC. Check network."
@@ -84,7 +90,7 @@ if [ "$GSTACK_ONLY" = false ]; then
 fi
 
 # --- gstack ---
-if [ "$ECC_ONLY" = false ]; then
+if [ "$ECC_ONLY" = false ] && [ "$MARKETING_ONLY" = false ]; then
   echo ""
   echo "Fetching gstack upstream..."
   git clone --quiet --depth=100 https://github.com/obedier/obstack "$TMPDIR/gstack" 2>/dev/null || {
@@ -108,7 +114,7 @@ if [ "$ECC_ONLY" = false ]; then
 fi
 
 # --- awesome-design-md ---
-if [ "$ECC_ONLY" = false ] && [ "$GSTACK_ONLY" = false ]; then
+if [ "$ECC_ONLY" = false ] && [ "$GSTACK_ONLY" = false ] && [ "$MARKETING_ONLY" = false ]; then
   echo ""
   echo "Fetching awesome-design-md upstream..."
   git clone --quiet --depth=100 https://github.com/VoltAgent/awesome-design-md "$TMPDIR/design-md" 2>/dev/null || {
@@ -152,10 +158,55 @@ elif [ "$DESIGN_MD_ONLY" = true ]; then
   fi
 fi
 
+# --- marketingskills ---
+if [ "$ECC_ONLY" = false ] && [ "$GSTACK_ONLY" = false ] && [ "$DESIGN_MD_ONLY" = false ]; then
+  echo ""
+  echo "Fetching marketingskills upstream..."
+  git clone --quiet --depth=100 https://github.com/coreyhaines31/marketingskills "$TMPDIR/marketingskills" 2>/dev/null || {
+    echo "WARNING: Failed to clone marketingskills. Skipping."
+  }
+
+  if [ -d "$TMPDIR/marketingskills" ]; then
+    MARKETING_NEW_SHA=$(cd "$TMPDIR/marketingskills" && git rev-parse HEAD)
+    ensure_history "$TMPDIR/marketingskills" "$MARKETING_SHA"
+    if [ "$MARKETING_SHA" = "$MARKETING_NEW_SHA" ]; then
+      echo "  marketingskills: already up to date ($MARKETING_SHA)"
+    else
+      echo ""
+      echo "=== marketingskills changes (${MARKETING_SHA:0:8}..${MARKETING_NEW_SHA:0:8}) ==="
+      cd "$TMPDIR/marketingskills"
+      git log -n 30 --oneline "$MARKETING_SHA".."$MARKETING_NEW_SHA" 2>/dev/null || true
+      MARKETING_CHANGES=$(git log --oneline "$MARKETING_SHA".."$MARKETING_NEW_SHA" 2>/dev/null | wc -l | tr -d ' ' || echo 0)
+      echo "  ($MARKETING_CHANGES new commits)"
+      cd "$REPO_ROOT"
+    fi
+  fi
+elif [ "$MARKETING_ONLY" = true ]; then
+  echo "Fetching marketingskills upstream..."
+  git clone --quiet --depth=100 https://github.com/coreyhaines31/marketingskills "$TMPDIR/marketingskills" 2>/dev/null || {
+    echo "ERROR: Failed to clone marketingskills. Check network."
+    exit 1
+  }
+
+  MARKETING_NEW_SHA=$(cd "$TMPDIR/marketingskills" && git rev-parse HEAD)
+  ensure_history "$TMPDIR/marketingskills" "$MARKETING_SHA"
+  if [ "$MARKETING_SHA" = "$MARKETING_NEW_SHA" ]; then
+    echo "  marketingskills: already up to date ($MARKETING_SHA)"
+  else
+    echo ""
+    echo "=== marketingskills changes (${MARKETING_SHA:0:8}..${MARKETING_NEW_SHA:0:8}) ==="
+    cd "$TMPDIR/marketingskills"
+    git log -n 30 --oneline "$MARKETING_SHA".."$MARKETING_NEW_SHA" 2>/dev/null || true
+    MARKETING_CHANGES=$(git log --oneline "$MARKETING_SHA".."$MARKETING_NEW_SHA" 2>/dev/null | wc -l | tr -d ' ' || echo 0)
+    echo "  ($MARKETING_CHANGES new commits)"
+    cd "$REPO_ROOT"
+  fi
+fi
+
 # --- Summary ---
-TOTAL_CHANGES=$((ECC_CHANGES + GSTACK_CHANGES + DESIGN_MD_CHANGES))
+TOTAL_CHANGES=$((ECC_CHANGES + GSTACK_CHANGES + DESIGN_MD_CHANGES + MARKETING_CHANGES))
 echo ""
-echo "Summary: $TOTAL_CHANGES new commits ($ECC_CHANGES ECC, $GSTACK_CHANGES gstack, $DESIGN_MD_CHANGES design-md)"
+echo "Summary: $TOTAL_CHANGES new commits ($ECC_CHANGES ECC, $GSTACK_CHANGES gstack, $DESIGN_MD_CHANGES design-md, $MARKETING_CHANGES marketing)"
 
 if [ "$TOTAL_CHANGES" -eq 0 ]; then
   echo "Nothing to update."
@@ -256,6 +307,29 @@ if [ "$DESIGN_MD_CHANGES" -gt 0 ] && [ -d "$TMPDIR/design-md" ]; then
   sed -i '' "s/^design_md=.*/design_md=$DESIGN_MD_NEW_SHA/" "$UPSTREAM_FILE"
   echo "  awesome-design-md updated to ${DESIGN_MD_NEW_SHA:0:12}"
   echo "  Design systems: $(ls "$REPO_ROOT/design-systems"/*.md 2>/dev/null | wc -l | tr -d ' ') brands"
+fi
+
+# --- Apply marketingskills ---
+if [ "$MARKETING_CHANGES" -gt 0 ] && [ -d "$TMPDIR/marketingskills" ]; then
+  echo ""
+  echo "Applying marketingskills updates..."
+  MARKETING_SRC="$TMPDIR/marketingskills"
+  mkdir -p "$REPO_ROOT/skills/cgo-marketing"
+
+  # Vendor skills/ and tools/ (rm dest first so upstream removals propagate)
+  rm -rf "$REPO_ROOT/skills/cgo-marketing/skills" "$REPO_ROOT/skills/cgo-marketing/tools"
+  cp -R "$MARKETING_SRC/skills" "$REPO_ROOT/skills/cgo-marketing/skills"
+  cp -R "$MARKETING_SRC/tools" "$REPO_ROOT/skills/cgo-marketing/tools"
+
+  # Top-level docs (README is vendored as UPSTREAM-README.md)
+  cp "$MARKETING_SRC/AGENTS.md" "$REPO_ROOT/skills/cgo-marketing/AGENTS.md"
+  cp "$MARKETING_SRC/LICENSE" "$REPO_ROOT/skills/cgo-marketing/LICENSE"
+  cp "$MARKETING_SRC/VERSIONS.md" "$REPO_ROOT/skills/cgo-marketing/VERSIONS.md"
+  cp "$MARKETING_SRC/README.md" "$REPO_ROOT/skills/cgo-marketing/UPSTREAM-README.md"
+
+  # Update SHA
+  sed -i '' "s/^marketingskills=.*/marketingskills=$MARKETING_NEW_SHA/" "$UPSTREAM_FILE"
+  echo "  marketingskills updated to ${MARKETING_NEW_SHA:0:12}"
 fi
 
 # Update timestamp

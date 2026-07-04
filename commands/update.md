@@ -51,7 +51,7 @@ Use `--skip-gstack-build` unless the gstack update includes browse binary change
 ### Step 4: Report
 
 Show what was updated:
-- Number of new commits applied (ECC + gstack)
+- Number of new commits applied (ECC + gstack + design-md + marketingskills)
 - Any new agents, commands, or skills added
 - Current upstream SHAs (from `.upstream` file)
 
@@ -83,7 +83,9 @@ findings before you `./install.sh` hundreds of third-party skill files to
 ## Arguments
 
 $ARGUMENTS:
-- (none) — check both upstreams and apply
+- (none) — check all upstreams and apply
 - `--ecc-only` — only check ECC
 - `--gstack-only` — only check gstack
+- `--design-md-only` — only check awesome-design-md
+- `--marketing-only` — only check marketingskills (Corey Haines marketing skills → `skills/cgo-marketing/`)
 - `--dry-run` — show changes without applying

@@ -19,7 +19,8 @@ Consolidated Claude Code configuration: gstack + ECC + Agentic Sprint Kit.
 | **gstack** | QA, review, ship, browse, product strategy | 17 skills |
 | **Sprint Kit** | Spec-first autonomous project builder | 11 skills + agent docs |
 | **awesome-design-md** | Production design systems for AI agents | 54 brand design systems |
-| **Custom** | Unified orchestrate + progress tracker | /orchestrate, /update, statusline |
+| **marketingskills** | Corey Haines growth-marketing skills + platform CLIs | 46 skills, 65 CLIs (`skills/cgo-marketing/`) |
+| **Custom** | Unified orchestrate + CGO growth team + progress tracker | /orchestrate, /cgo, /update, statusline |
 
 ## Workflow Entry Points
 
@@ -32,6 +33,34 @@ Consolidated Claude Code configuration: gstack + ECC + Agentic Sprint Kit.
 | `/orchestrate hotfix "desc"` | Fast-track fix → ship |
 | `/orchestrate security "desc"` | Security audit |
 | `/orchestrate qa` | QA pass on current branch |
+| `/cgo <project> [goal]` | Run the Chief Growth Officer team — SEO + paid/performance marketing end to end |
+
+## CGO — Chief Growth Officer Growth Team
+
+Point an orchestrated growth-marketing team at any project (repo, product, or URL)
+to plan and run real SEO + paid/performance marketing with measurement and
+approval gates. Entry point: `/cgo` (skill `skills/cgo/SKILL.md`, command `commands/cgo.md`).
+
+**The team** (`agents/cgo.md` + `agents/growth-*-lead.md`):
+
+| Agent | Owns |
+|-------|------|
+| `cgo` | Strategy, ICP/positioning, channel mix, budget, synthesis |
+| `growth-seo-lead` | Technical/content/AI SEO (GEO/AEO), programmatic SEO |
+| `growth-paid-lead` | Google/Meta/LinkedIn/TikTok/X ads, bidding, ROAS/CAC |
+| `growth-analytics-lead` | Tracking, reporting, attribution — via Supermetrics MCP |
+| `growth-cro-lead` | Landing/funnel/offer conversion |
+| `growth-content-lead` | On-brand production (reuses `brand-voice` + `content-engine`) |
+
+**Backed by** the vendored `cgo-marketing` suite (46 skills + 65 zero-dep platform
+CLIs in `skills/cgo-marketing/tools/clis/`) and the connected **Supermetrics MCP**
+(live GA4/Ads/GSC data + campaign writes). All work grounds in a shared
+`.agents/product-marketing.md` positioning doc.
+
+**Autonomy default: execute-with-approval** — autonomous for research, audits,
+read-only data pulls, and all drafts/artifacts; **pauses for explicit OK** before
+any live spend change, campaign edit, or publish. Use `/cgo audit <project>` for
+advisory-only (no execution). Never fabricates metrics; always attributes external analysis.
 
 ## Design Systems (Auto-Injected)
 
@@ -71,9 +100,10 @@ Reference docs in `agent_docs/`:
 
 ## Upstream Tracking
 
-This repo vendors three upstreams tracked in `.upstream`:
+This repo vendors four upstreams tracked in `.upstream`:
 - **ECC**: github.com/affaan-m/everything-claude-code
 - **gstack**: github.com/obedier/obstack
 - **awesome-design-md**: github.com/VoltAgent/awesome-design-md
+- **marketingskills**: github.com/coreyhaines31/marketingskills (MIT) → vendored to `skills/cgo-marketing/`
 
-Run `/update` to pull latest changes. The update never overwrites custom files (orchestrate, sprint kit, agent_docs). Use `--design-md-only` to update only design systems.
+Run `/update` to pull latest changes. The update never overwrites custom files (orchestrate, `/cgo` + growth agents, sprint kit, agent_docs). Scope flags: `--ecc-only`, `--gstack-only`, `--design-md-only`, `--marketing-only`.
