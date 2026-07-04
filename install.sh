@@ -145,7 +145,7 @@ for (const event of Object.keys(settings.hooks)) {
     if (cmd.includes('block-no-verify')) return false;
     // Remove hooks added by old installer (direct path to ~/.claude/scripts/hooks/*.js
     // without the plugin-hook-bootstrap loader, i.e. no CLAUDE_PLUGIN_ROOT resolution)
-    if (/node "\/[^"]+\/\.claude\/scripts\/hooks\/run-with-flags\.js"/.test(cmd)) return false;
+    if (/node \"\/[^\"]+\/\.claude\/scripts\/hooks\/run-with-flags\.js\"/.test(cmd)) return false;
     return true;
   });
 }

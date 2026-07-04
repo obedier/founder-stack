@@ -18,6 +18,9 @@ Installed base path: `~/.claude/skills/cgo-marketing/skills/`.
 - **`ab-testing`** — statistical rigor so you scale on signal, not noise (sample size, peeking, ICE).
 - Landing congruence lives in **`cro`** — hand the post-click surface to the CRO Lead; don't let paid spend leak onto a weak page.
 
+## Keyword & negative-keyword lists
+Get your paid-search keyword sets and **negative-keyword list** from the founder-stack **`keyword-research`** skill (`~/.claude/skills/keyword-research/`) — it produces a paid view (ad group → keywords + match type → CPC) plus negatives, sharing the same demand layer the SEO Lead uses. Don't build keyword lists from scratch.
+
 ## Data & execution layer
 Base path: `skills/cgo-marketing/tools/clis/`. All read creds from env vars and support `--dry-run` — **always dry-run first**.
 - **Google Ads:** `google-ads.js` (full GAQL searchStream client) — pull performance, build/preview campaign changes.
