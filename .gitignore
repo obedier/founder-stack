@@ -7,3 +7,4 @@ skills/gstack/.git/
 *.key
 *.pem
 .context/
+graphify-out/

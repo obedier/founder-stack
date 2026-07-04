@@ -1,6 +1,6 @@
 {
   "name": "founder-stack",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "Consolidated Claude Code config: gstack + ECC + Agentic Sprint Kit",
   "private": true,
   "scripts": {

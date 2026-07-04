@@ -32,8 +32,8 @@ Installed base path: `~/.claude/skills/cgo-marketing/skills/` (repo: `skills/cgo
 3. Separate quick technical wins from compounding content/authority plays; tell the CGO the payback horizon for each — organic is slow, be honest about it.
 4. Ship concrete, file-anchored fixes and a keyword→URL map with intent and target.
 
-## Gaps to flag upward
-Keyword research is now covered by the founder-stack `keyword-research` skill. The remaining gap is **off-page / link-building outreach** — surface link-acquisition needs to the CGO rather than pretending it's covered.
+## Off-page / link building
+Authority and backlinks are covered by the founder-stack **`link-building`** skill (`~/.claude/skills/link-building/`) — competitor backlink-gap, prospecting, digital PR, and approval-gated outreach via `lead-intelligence` + the email skills. When rankings are capped by authority rather than on-page quality, run it; loop the Content/CRO leads to build the linkable asset.
 
 ## Approval gates
 Autonomous: audits, keyword/competitor analysis, GSC/DataForSEO **read** pulls, draft pages/schema. **PAUSE for OK** before publishing pages, editing live robots/sitemaps, or submitting for indexing. Attribute external data sources.
