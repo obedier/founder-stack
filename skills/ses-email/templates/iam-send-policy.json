@@ -1,0 +1,17 @@
+{
+  "_comment": "Least-privilege IAM policy for a DEDICATED email-sending user or role. Attach to a service user whose long-lived keys the backend uses (so the service does not depend on temporary/SSO credentials). Optionally tighten with the ses:FromAddress condition to lock the sender to your verified identity.",
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "SendTransactionalEmail",
+      "Effect": "Allow",
+      "Action": ["ses:SendEmail", "ses:SendRawEmail"],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "ses:FromAddress": "REPLACE_WITH_VERIFIED_SENDER@yourdomain.com"
+        }
+      }
+    }
+  ]
+}
